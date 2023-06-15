@@ -225,3 +225,153 @@ function tableNew(arr) {
 	}
 	document.getElementsByClassName("table")[0].appendChild(tableN);
 }
+
+//--------------------------------------------------------------------------------------------------------------------------------
+
+let table = [];
+let param = [];
+
+function getArrGraph(arrObject, fieldX, fieldY) {
+    // сформируем список меток по оси OX (различные элементы поля fieldX)
+    let i = param.indexOf(fieldX);
+    let groupObj = d3.group(arrObject, d => d[param[i]]);
+
+    arrGroup = []; 
+    for(let entry of groupObj) {
+        //выделяем минимальное и максимальное значения поля fieldY 
+        //для очередной метки по оси ОХ
+        let j = param.indexOf(fieldY);
+        let minMax = d3.extent(entry[1].map(d => parseFloat((d[param[j]]))));
+
+        let elementGroup = {};
+        elementGroup.labelX = entry[0];
+        elementGroup.valueMin = minMax[0];
+        elementGroup.valueMax = minMax[1];
+        
+        arrGroup.push(elementGroup);
+    }
+    return arrGroup;
+}
+function graph(form) {
+	if (table.length == 0) {
+        let element = document.getElementsByTagName('tbody');
+        element = element[0].children;
+        for (let i = 0; i < element.length; i++){
+            let ch = element[i].children;
+            if (i == 0)
+                for (let j = 0; j < ch.length; j++)
+				param.push(ch[j].textContent);
+            else {       
+                let el = {};
+                for (let j = 0; j < ch.length; j++)
+                el[param[j]] = ch[j].textContent ;
+                table.push(el); 
+            }
+        }
+    }
+
+	let v = (form[0].checked == true) ? form[0].value : form[1].value;
+    let arrGraph = getArrGraph(table, v, "Мировые кассовые сборы (млрд $)")
+    let marginX = 50;
+    let marginY = 50;
+    let height = 400;
+    let width = 800;
+   
+    let svg = d3.select("svg")
+    .attr("height", height)
+    .attr("width", width);
+   
+    // очищаем svg перед построением
+    svg.selectAll("*").remove();
+
+    // определяем минимальное и максимальное значение по оси OY
+    let min = d3.min(arrGraph.map(d => d.valueMin)) * 0.95;
+    let max = d3.max(arrGraph.map(d => d.valueMax)) * 1.05;
+    let xAxisLen = width - 2 * marginX;
+    let yAxisLen = height - 2 * marginY;
+   
+    // определяем шкалы для осей
+    let scaleX = d3.scaleBand()
+    .domain(arrGraph.map(function(d) {
+        return d.labelX;
+    })
+    )
+    .range([0, xAxisLen],1);
+   
+    let scaleY = d3.scaleLinear()
+    .domain([min, max])
+    .range([yAxisLen, 0]);
+    // создаем оси
+    let axisX = d3.axisBottom(scaleX); // горизонтальная
+    let axisY = d3.axisLeft(scaleY);// вертикальная
+   
+    // отображаем ось OX, устанавливаем подписи оси ОX и угол их наклона
+    svg.append("g")
+    .attr("transform", `translate(${marginX}, ${height - marginY})`)
+    .call(axisX)
+    .attr("class", "x-axis")
+    .selectAll("text")
+    .style("text-anchor", "end")
+    .attr("dx", "-.8em")
+    .attr("dy", ".15em")
+    .attr("transform", function (d) {
+        return "rotate(-45)";
+    });
+   
+    // отображаем ось OY
+    svg.append("g")
+    .attr("transform", `translate(${marginX}, ${marginY})`)
+    .attr("class", "y-axis")
+    .call(axisY);
+   
+    // создаем набор вертикальных линий для сетки
+    d3.selectAll("g.x-axis g.tick")
+    .append("line") // добавляем линию
+    .classed("grid-line", true) // добавляем класс
+    .attr("x1", 0)
+    .attr("y1", 0)
+    .attr("x2", 0)
+    .attr("y2", - (yAxisLen));
+   
+    // создаем горизонтальные линии сетки
+    d3.selectAll("g.y-axis g.tick")
+    .append("line")
+    .classed("grid-line", true)
+    .attr("x1", 0)
+    .attr("y1", 0)
+    .attr("x2", xAxisLen)
+    .attr("y2", 0);
+   
+    let f = true;
+    // отображаем данные в виде диаграммы
+    if(form[2].checked == true){
+            svg.selectAll(".dot")
+            .data(arrGraph)
+            .enter()
+            .append("circle")
+            .attr("r", 5)
+            .attr("cx", function(d) { return scaleX(d.labelX); })
+            .attr("cy", function(d) { return scaleY(d.valueMax); })
+            .attr("transform",
+            `translate(${marginX + scaleX.bandwidth()/2}, ${marginY})`)
+            .style("fill", "red");
+        f = false;
+    }
+    if (form[3].checked == true){
+            svg.selectAll(".dot")
+            .data(arrGraph)
+            .enter()
+            .append("circle")
+            .attr("r", 5)
+            .attr("cx", function(d) { return scaleX(d.labelX); })
+            .attr("cy", function(d) { return scaleY(d.valueMin); })
+            .attr("transform",
+            `translate(${marginX + scaleX.bandwidth()/2}, ${marginY})`)
+            .style("fill", "blue");
+        f = false;
+    }
+    if (f) {
+        alert('Выберите значение по оси OY!');
+        svg.selectAll("*").remove();
+    }
+}
