@@ -4,6 +4,8 @@
     <title>Список</title>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="css/main.css">
+    <script src="http://d3js.org/d3.v7.min.js"> </script>
+    <script src="js/s1.js"></script><script src="js/l3.js"></script>
   </head>
   <body>
     <div class="container">
@@ -83,17 +85,19 @@
           <summary>График</summary><br>
           <form>
             <label>OX:</label><br>
-            <input type="radio" name="n11"><span>Страна</span><br>
-            <input type="radio" name="n12"><span>Год основания</span><br><br>
+            <input type="radio" name="n1" value="Страна" checked><span>Страна</span><br>
+            <input type="radio" name="n1" value="Год основания"><span>Год основания</span><br><br>
             <label>OY:</label><br>
-            <input type="radio" name="n21"><span>Кол-во проектов</span><br>
-            <input type="radio" name="n22"><span>Мировые кассовые сборы</span><br><br>
-            <input id="grafButton" name="grafButton" type="button" value="Построить">
+            <input type="checkbox" name="n2" checked><span>Максимальные кассовые сборы</span><br>
+            <input type="checkbox" name="n2"><span>Минимальные кассовые сборы</span><br><br>
+            <input id="grafButton" name="grafButton" type="button" value="Построить" onclick="graph(this.form)">
+            <svg height="5"></svg>
           </form>
         </details>
       </div>
       <div class="table">
         <table id = "tableAll" border="1" align="justify" cellspacing="0" cellpadding="5">
+          <tbody >
           <tr class="tableTitle">
             <td>№</td>
             <td>Название</td>
@@ -553,6 +557,7 @@
             <td>18</td>
             <td>4.828</td>
           </tr>
+        </tbody>
         </table>
       </div>
     </div>
